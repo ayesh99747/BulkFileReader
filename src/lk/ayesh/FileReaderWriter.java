@@ -6,40 +6,76 @@ import java.util.List;
 import java.util.Scanner;
 
 public class FileReaderWriter {
-    private String inputFileName;
     private String outputFileName;
 
-    public FileReaderWriter(String inputFileName, String outputFileName) {
-        this.inputFileName = inputFileName;
-        this.outputFileName = outputFileName;
+    public FileReaderWriter() {
+        this.outputFileName = "output.txt";
+        this.emptyFile();
+    }
+
+    private void emptyFile() {
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(this.outputFileName);
+            writer.print("");
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Unable to find file");
+        } finally {
+            writer.close();
+        }
+    }
+
+    public List<String> readAllFileNames() {
+        List<String> fileNames = new ArrayList<>();
+        File folder = new File("Input Files/");
+        File[] listOfFiles = folder.listFiles();
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                fileNames.add(listOfFiles[i].getName());
+            } else if (listOfFiles[i].isDirectory()) {
+                System.out.println("Unable to read directory! Place all the files in the 'Input files/' folder!");
+            }
+        }
+        return fileNames;
     }
 
     public void execute() {
-        File file = new File(this.inputFileName);
+        List<String> fileNames = readAllFileNames();
+        if (fileNames.isEmpty()) {
+            System.out.println("No files found in 'Input files/' folder!");
+            return;
+        }
+        for (String fileName : fileNames) {
+            List<String> inputLines = this.readFromFile(fileName);
+            this.writeToFile(fileName, inputLines);
+            System.out.println("File write successful - " + fileName);
+        }
+
+    }
+
+    public List<String> readFromFile(String inputFileName) {
+        File file = new File("Input Files/" + inputFileName);
         List<String> inputLines = new ArrayList<>();
         Scanner sc = null;
         try {
             sc = new Scanner(file);
-            System.out.println("Lines appended to file");
             while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                System.out.println(line);
-                inputLines.add(line);
+                inputLines.add(sc.nextLine());
             }
         } catch (FileNotFoundException e) {
             System.out.println("Error! Unable to find file!");
         }
-        this.writeToFile(inputLines);
+        return inputLines;
     }
 
-    private void writeToFile(List<String> lines) {
+    private void writeToFile(String inputFileName, List<String> lines) {
         FileWriter writer = null;
         try {
             writer = new FileWriter(this.outputFileName, true);
             BufferedWriter bufferedWriter = new BufferedWriter(writer);
 
-            bufferedWriter.write(this.inputFileName);
-            bufferedWriter.newLine();
+            bufferedWriter.write(inputFileName + " -");
             bufferedWriter.newLine();
 
             for (String line : lines) {
